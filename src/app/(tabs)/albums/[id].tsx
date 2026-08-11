@@ -10,12 +10,12 @@ export default function AlbumView() {
     const headerTitle = Array.isArray(id) ? id[0] ?? "" : id ?? "";
     const principalImageUri = dataAlbums.find(u => u.title === headerTitle)?.image_uri ?? "";
 
-    const [colorDominante, setColorDominante] = useState<string>('#ffffff');
+    const [colorDominante, setColorDominante] = useState<string>('#000');
     const urlImagen = principalImageUri;
 
     useEffect(() => {
         getColors(urlImagen, {
-        fallback: '#ffffff', // Color por si falla la carga
+        fallback: '#000000', // Color por si falla la carga
         cache: true,
         key: urlImagen,
         }).then((result) => {
@@ -30,11 +30,11 @@ export default function AlbumView() {
 
     return (
         <SongView
+            contextId={headerTitle}
             dataJSON={dataSongs.filter(u => u.album === headerTitle)}
             principalColor={colorDominante}
             headerTitle={headerTitle}
             principalImageUri={principalImageUri}
-            styleImage={{display: "none"}}
         />
     );
 }

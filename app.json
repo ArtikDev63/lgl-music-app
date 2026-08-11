@@ -4,11 +4,15 @@
     "slug": "lgl-music-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/lgl_icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "lgl-app",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.artik.lglmusicapp",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +22,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.artik63.lglmusicapp"
+      "package": "com.artik.lglmusicapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,7 +35,8 @@
         {
           "disableLibdav1d": true
         }
-      ]
+      ],
+      "expo-splash-screen"
     ],
     "experiments": {
       "typedRoutes": true,

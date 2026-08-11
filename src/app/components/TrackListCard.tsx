@@ -1,37 +1,38 @@
-import { View, Text, Pressable, StyleSheet, StyleProp, ImageStyle } from "react-native";
+import { View, Text, Pressable, StyleSheet, StyleProp, ImageStyle, InteractionManager } from "react-native";
 import { Image } from "expo-image";
 import { unknownTrackImageUri } from "@/constants/images";
 import { colors, fontSize } from "@/constants/tokens";
+import useMusicPlayer from "@/music_service/playService";
+import { memo, startTransition } from "react";
+import { usePathname } from 'expo-router';
+import { MediaItem, useActiveMediaItem } from "@rntp/player";
 
 export type TrackListCardProps = {
-    song: { title: string; artists?: string; image?: string };
-    styleImage?: StyleProp<ImageStyle>;
+    song: MediaItem;
+    contextId: string;
+    tracks: any[];
 }
 
-export default function TrackListCard({ song, styleImage }: TrackListCardProps) {
-
-    const isActiveTrack = false
+const TrackListCard = memo(({ song, contextId, tracks }: TrackListCardProps) =>  {
 
     return(
         <Pressable style={({ hovered, pressed }) => [
             styles.cardContainer,
-            hovered && styles.cardHovered,
-            pressed && styles.cardPressed
+            {backgroundColor: hovered || pressed ? '#161616' : "transparent"}
         ]} onPress={null}>
-
             <Image source={{ 
-                uri: song.image ?? unknownTrackImageUri
-             }}
-             priority={"normal"}
-             placeholder={unknownTrackImageUri}
-             style={[{...styles.coverImage}, styleImage]} />
-
+                uri: song.artworkUrl?.toString() ?? unknownTrackImageUri
+            }}
+            priority={"normal"}
+            placeholder={unknownTrackImageUri}
+            cachePolicy={"memory-disk"}
+            style={[{...styles.coverImage}, false ? styles.styleImageDisplay: null]} />
             <View style={styles.textContainer}>
-                <Text style={{...styles.titleText, color: isActiveTrack ? colors.primary: colors.text}} numberOfLines={1}>
+                <Text style={{...styles.titleText, color: false ? colors.primary: colors.text}} numberOfLines={1}>
                     {song.title}
                 </Text>
-                <Text style={{...styles.artistText, color: isActiveTrack ? colors.primary: colors.textMuted}} numberOfLines={1}>
-                    {song.artists}
+                <Text style={{...styles.artistText, color: false ? colors.primaryMuted: colors.textMuted}} numberOfLines={1}>
+                    {song.artist}
                 </Text>
             </View>
 
@@ -44,7 +45,7 @@ export default function TrackListCard({ song, styleImage }: TrackListCardProps) 
 
         </Pressable>
     )
-}
+})
 
 const styles = StyleSheet.create({
     cardContainer: {
@@ -55,12 +56,6 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 10,
         height: 64
-    },
-    cardHovered: {
-        backgroundColor: '#161616',
-    },
-    cardPressed: {
-        backgroundColor: '#161616',
     },
     coverImage: {
         width: 48,
@@ -94,4 +89,9 @@ const styles = StyleSheet.create({
         color: '#B3B3B3',
         fontSize: fontSize.base,
     },
+    styleImageDisplay: {
+        display: "none"
+    }
 });
+
+export default TrackListCard;

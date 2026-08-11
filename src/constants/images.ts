@@ -1,5 +1,5 @@
 import unknownSongImage from "@/assets/unknown-album.png";
-import lglIcon from "@/assets/lgl-icon.png";
+import lglIcon from "@/assets/lgl_icon.png";
 
 import { Image } from 'react-native'
 

@@ -1,5 +1,6 @@
 export const colors = {
 	primary: '#00E800',
+	primaryMuted: "#44a344",
 	background: '#000',
 	text: '#fff',
 	textMuted: '#9ca3af',
@@ -21,5 +22,5 @@ export const screenPadding = {
 
 export const tabBarToContentMargin = {
 	bottomPadding_NO_MiniPlayer: 70,
-	bottomPaddingMiniPlayer: 80,
+	bottomPaddingMiniPlayer: 135,
 }

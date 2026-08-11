@@ -3,7 +3,7 @@ import { ScrollView, Text, View, Animated, StyleSheet } from "react-native";
 import TrackList from "@/app/components/TrackList";
 import { tabBarToContentMargin } from "@/constants/tokens";
 
-export default function SongScreen(){
+export default function LibraryScreen(){
 
     return(
         <View style={defaultStyles.container}>

@@ -2,7 +2,7 @@ import { defaultStyles } from '@/styles/styles'
 import { Stack } from 'expo-router'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
-const SongsScreenLayout = () => {
+const AlbumScreenLayout = () => {
 	return (
 		<SafeAreaProvider style={[defaultStyles.container, {backgroundColor: "#222222"}]}>
 			<Stack
@@ -24,4 +24,4 @@ const SongsScreenLayout = () => {
 	)
 }
 
-export default SongsScreenLayout
+export default AlbumScreenLayout
