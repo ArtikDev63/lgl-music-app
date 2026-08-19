@@ -2,7 +2,7 @@ import AlbumList from "@/app/components/AlbumList";
 import { fontSize } from "@/constants/tokens";
 import { defaultStyles } from "@/styles/styles";
 import { LinearGradient } from "expo-linear-gradient";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AlbumScreen() {
@@ -17,9 +17,7 @@ export default function AlbumScreen() {
                 end={{x: 0, y: 1}}>
                 <Text style={{...styles.titleText, color: "white"}}>ALBUMS</Text>
             </LinearGradient>
-            <ScrollView style={styles.albumContainer}>
-                <AlbumList/>
-            </ScrollView>
+            <AlbumList/>
         </View>
     );
 

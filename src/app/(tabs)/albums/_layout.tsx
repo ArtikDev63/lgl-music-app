@@ -1,6 +1,6 @@
 import { defaultStyles } from '@/styles/styles'
 import { Stack } from 'expo-router'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 const AlbumScreenLayout = () => {
 	return (

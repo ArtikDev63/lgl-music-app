@@ -1,57 +1,40 @@
-import useMusicPlayer from '@/music_service/playService';
-import { PlaybackState, useActiveMediaItem, useIsPlaying, usePlaybackState } from '@rntp/player';
+import TrackPlayer, { PlaybackState, useActiveMediaItem, useIsPlaying, usePlaybackState } from '@rntp/player';
 import React, { useMemo } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet } from 'react-native';
 import { colors } from '@/constants/tokens';
-// Asegúrate de importar tus hooks y componentes (Ionicons, etc.)
+import { useQueue } from "@/store/queue";
+import { isPlaying } from 'node_modules/@rntp/player/src/audio';
+import { useQueueManager } from '@/store/userQueueManager';
 
 interface SmartPlayButtonProps {
-    contextId: string;
+    id: string;
     tracks: any[];
 }
 
 const SmartPlayButton = ({
-    contextId,
+    id,
     tracks,
 }: SmartPlayButtonProps) => {
-    // 1. Suscripciones a estados
-    const activeTrack = useMusicPlayer(state => state.currentTrack);
-    const currentTrack = useActiveMediaItem() ?? activeTrack;
-    const isPlaying = useIsPlaying();
-    const playbackState = usePlaybackState()
-    
-    const playAlbum = useMusicPlayer((state) => state.playAlbum);
-    const togglePlayPause = useMusicPlayer((state) => state.togglePlayPause);
+   
+    const playing = useIsPlaying()
+    const loadQueue = useQueueManager(state => state.loadQueue);
+    const activeQueueId = useQueueManager(state => state.activeQueueId);
 
-    // 2. PROTECCIÓN Y MEMORIZACIÓN
-    // Solo recalcula si el contextId o la canción actual cambian.
-    // Además, protege contra valores nulos para evitar que la app crashee.
-    const isThisAlbumPlaying = useMemo(() => {
-        const trackContext = currentTrack?.extras?.contextId;
-        
-        // Si no hay contexto en la canción actual o no nos pasaron contextId, devolvemos false rápido
-        if (!trackContext || !contextId) return false;
-        
-        return contextId.trim().toLowerCase() === trackContext.trim().toLowerCase();
-    }, [contextId, currentTrack?.extras?.contextId]);
+    const currentIdPlaylist = activeQueueId === id
 
-    // Ocultamos el log temporalmente (descoméntalo si necesitas depurar, ya no hará spam)
-    // console.log("Calculado:", isThisAlbumPlaying, contextId, currentTrack?.extras?.contextId);
-    
-    // 3. Lógica visual
-    const buttonIcon = isThisAlbumPlaying && (isPlaying || playbackState === PlaybackState.Buffering) ? "pause-circle" : "play-circle";
+    const buttonIcon = playing && currentIdPlaylist ? "pause-circle" : "play-circle";
 
-    const handlePress = () => {
-        // 4. Usar setTimeout en RN es mucho más estable que requestIdleCallback
-        // 50ms es suficiente para liberar el hilo visual antes de inyectar audio
-        setTimeout(() => {
-            if (isThisAlbumPlaying) { 
-                togglePlayPause();
-            } else {
-                playAlbum(tracks, contextId);
-            }
-        }, 50); 
+    const handlePress = async() => {
+
+        if(!tracks) return null
+
+        if(currentIdPlaylist){
+            playing ? TrackPlayer.pause() : TrackPlayer.play()
+        } else {
+            await loadQueue(tracks, 0, id);
+        }
+
     };
 
     return (

@@ -1,72 +1,72 @@
 // src/app/components/MiniPlayer.tsx
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import useMusicPlayer from '@/music_service/playService'; // Ajusta la ruta a tu Zustand
+import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import {Image as ExpoImage} from 'expo-image';
 import { unknownTrackImageUri } from '@/constants/images';
-import { useActiveMediaItem, useIsPlaying, useProgress } from '@rntp/player';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useActiveMediaItem, useProgress } from '@rntp/player';
+import { MiniPlayButton } from './PlayerControls';
+import { useLastActiveTrack } from '@/hooks/useLastActiveTrack';
+import { useRouter } from 'expo-router';
+import { Slider } from 'react-native-awesome-slider';
+import { useEffect } from 'react';
+import { useSharedValue } from 'react-native-reanimated';
 
-const SmartPlayButton = () => {
-        // 1. Nos suscribimos de manera reactiva a Zustand
-        const isPlaying = useIsPlaying()
-        const togglePlayPause = useMusicPlayer((state) => state.togglePlayPause);
-        
-        // 3. El icono cambiará visualmente sin retrasos
-        const buttonIcon = isPlaying ? "pause" : "play";
 
-        const handlePress = () => {
-            togglePlayPause()
-        };
+export default function MiniPlayer({style} : {style: ViewStyle}) {
 
-        return (
-            <Pressable style={[styles.iconPause]} onPress={handlePress}>
-                <Ionicons name={buttonIcon} size={26} color="white" />
-            </Pressable>
-        );
-    };
+    const router = useRouter()
 
-export default function MiniPlayer() {
-    const router = useRouter();
-    // 1. Leemos el estado global para saber si hay una canción cargada
-    
-    // (Opcional: Si en tu estado guardas los datos de la pista actual, léelos aquí)
-    const activeTrack = useMusicPlayer(state => state.currentTrack);
-    const currentTrack = useActiveMediaItem() ?? activeTrack;
+    const activeTrack = useActiveMediaItem()
+    const lastActiveTrack = useLastActiveTrack()
 
-    // El hook nos da la posición actual y la duración total en segundos
-    const { position, duration } = useProgress(); // Se actualiza cada 1000ms (1 segundo)
+    const displayTrack = activeTrack ?? lastActiveTrack
 
-    // Calculamos el porcentaje (evitando dividir por cero cuando la canción carga)
-    const progressPercentage = duration > 0 ? (position / duration) * 100 : 0;
+    const { duration, position } = useProgress();
+    const progress = useSharedValue(0);
+    const min = useSharedValue(0);
+    const max = useSharedValue(1);
 
-    // 2. Si no hay contexto ni música, destruimos el componente (no se muestra)
-    if (!currentTrack.extras?.contextId) return null;
+    useEffect(() => {
+        progress.value = duration > 0 ? position / duration : 0;
+    }, [position, duration]);
 
-    // 3. Cuando lo presionen, navegamos al modal que configuramos
+    if(!displayTrack) return null;
+
     const handlePress = () => {
-        router.push('/player' as any);
-    };
+        router.navigate("/player")
+    }
 
     return (
-        <Pressable onPress={handlePress} style={[styles.container, {backgroundColor: currentTrack.extras.imageColor}]}>
+        <Pressable onPress={handlePress} style={[styles.container, style, {backgroundColor: displayTrack.extras?.imageColor as any ?? '#2A2A2A'}]}>
             <View style={[styles.content]}>
                 {/* Imagen de la pista */}
-                <ExpoImage style={styles.imagePlaceholder} source={{uri: currentTrack.artworkUrl ?? unknownTrackImageUri}} placeholder={unknownTrackImageUri}/> 
+                <ExpoImage style={styles.imagePlaceholder} source={{uri: displayTrack.artworkUrl?.toString() ?? unknownTrackImageUri}} placeholder={unknownTrackImageUri}/> 
                 
                 {/* Textos */}
                 <View style={styles.textContainer}>
-                    <Text style={styles.title} numberOfLines={1}>{currentTrack.title}</Text>
-                    <Text style={styles.artist} numberOfLines={1}>{currentTrack.artist}</Text>
+                    <Text style={styles.title} numberOfLines={1}>{displayTrack.title}</Text>
+                    <Text style={styles.artist} numberOfLines={1}>{displayTrack.artist}</Text>
                 </View>
 
                 {/* Tu botón de Play/Pause que ya gestiona el estado nativo */}
                 {/* <SmartPlayButton ... /> */}
-                <SmartPlayButton/>
+                <MiniPlayButton style={styles.iconPause} iconSize={26}/>
             </View>
-            <View style={[styles.progressBarContainer, styles.progressBar, { width: `${progressPercentage}%` } // Aquí ocurre la magia
-                ]}></View>
-            <View style={styles.progressBarContainer}></View>
+            <View style={styles.progressBarContainer} pointerEvents='none'>
+                <Slider
+                    progress={progress}
+                    minimumValue={min}
+                    maximumValue={max}
+                    containerStyle={styles.progressBarContainer}
+                    renderBubble={() => null}
+                    renderThumb={() => null}
+                    disableTrackFollow={true}
+                    disableTrackPress={true}
+                    theme={{
+                        maximumTrackTintColor: '#ffffff66',
+                        minimumTrackTintColor: '#ffffff99',
+                    }}
+                    />
+            </View>
         </Pressable>
     );
 }
@@ -74,8 +74,6 @@ export default function MiniPlayer() {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        // Lo elevamos para que no lo tape la barra de navegación de pestañas.
-        // (En Expo las Tabs suelen medir unos 50-60px, ajusta este bottom)
         bottom: 80, 
         left: 10,
         right: 10,
@@ -96,7 +94,7 @@ const styles = StyleSheet.create({
     },
     textContainer: {
         flex: 1,
-        marginLeft: 10,
+        marginHorizontal: 10,
     },
     title: { color: 'white', fontWeight: 'bold', fontSize: 14 },
     artist: { color: '#B3B3B3', fontSize: 12 },

@@ -3,12 +3,13 @@ import { colors, fontSize } from "@/constants/tokens";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import {Image} from "expo-image";
 import {useRouter} from "expo-router"
+import { memo } from "react";
 
 export type AlbumListCardProps = {
     album: {title: string; anyo?: number; image?: string}
 }
 
-export default function AlbumListCard({album}: AlbumListCardProps){
+const AlbumListCard = memo(({album}: AlbumListCardProps) => {
 
     const isActiveTrack = false
 
@@ -38,7 +39,7 @@ export default function AlbumListCard({album}: AlbumListCardProps){
             </View>
         </Pressable>
     );
-};
+})
 
 const styles = StyleSheet.create({
     cardContainer: {
@@ -81,3 +82,5 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
 })
+
+export default AlbumListCard;

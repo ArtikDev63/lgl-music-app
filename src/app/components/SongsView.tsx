@@ -1,7 +1,6 @@
 import { defaultStyles } from "@/styles/styles";
-import { ScrollView, Text, View, StyleSheet, ColorValue, ViewStyle, StyleProp, ImageStyle, Pressable, TextInput } from "react-native";
+import { View, StyleSheet, ColorValue, StyleProp, ImageStyle, Pressable } from "react-native";
 import TrackList from "@/app/components/TrackList";
-import { lglIconUri } from "@/constants/images";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { 
   useSharedValue, 
@@ -10,17 +9,13 @@ import Animated, {
   interpolate,
   Extrapolation
 } from 'react-native-reanimated';
-import { colors, fontSize, tabBarToContentMargin } from "@/constants/tokens";
+import { fontSize, tabBarToContentMargin } from "@/constants/tokens";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMemo, useState } from "react";
-import useMusicPlayer from "@/music_service/playService";
-import TrackPlayer, { MediaItem, PlaybackState, useActiveMediaItem, useIsPlaying, usePlaybackState } from "@rntp/player";
+import { MediaItem } from "@rntp/player";
 import { useRouter, usePathname } from "expo-router";
-import {Image as ExpoImage} from "expo-image";
-import SmartPlayButton from "./SmartPlayButton";
+import ListHeader from "./ListHeader";
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -29,49 +24,23 @@ const HEADER_MIN_HEIGHT = 150;
 const SCROLL_DISTANCE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 const POST_SCROLL_DISTANCE = SCROLL_DISTANCE + 10
 
-const MAIN_IMAGE_MAX_SIZE = 192
-const MAIN_IMAGE_MIN_SIZE = 56
-
 type SongViewProps = {
-    contextId: string;
-    dataJSON?: MediaItem[];
+    id: string;
+    tracks?: MediaItem[];
     principalColor: ColorValue;
     principalImageUri: string;
     headerTitle: string;
     styleImage?: StyleProp<ImageStyle>
-};
+}; 
 
-    const SmartShuffleButton = () => {
-
-        const toggleShuffle = useMusicPlayer(state => state.toggleShuffle);
-        const isShuffle = useMusicPlayer(state => state.isShuffle);
-
-        const colorIcon = isShuffle ? colors.primary : "white"
-
-        const handlePress = () => {
-            toggleShuffle()
-            console.log(isShuffle)
-        }
-
-        return(
-            <Pressable style={styles.iconPauseAndShuffle} onPress={handlePress}>
-                <Ionicons name="shuffle" size={32} color={colorIcon} />
-            </Pressable>
-        )
-    }
-
-    
-
-export default function SongsView({ contextId, dataJSON = [], principalColor, principalImageUri, headerTitle}: SongViewProps){
+export default function SongsView({ id, tracks = [], principalColor, principalImageUri, headerTitle}: SongViewProps){
 
     const pathname = usePathname();
-    const isAlbumScreen = pathname === `/albums/${contextId}`;
+    const isAlbumScreen = pathname === `/albums/${id}`;
 
     const router = useRouter(); // 2. Inicializa el router
 
     const insets = useSafeAreaInsets()
-
-    const [isFocused, setIsFocused] = useState(false);
 
     const [text, onChangeText] = useState('');
 
@@ -84,8 +53,8 @@ export default function SongsView({ contextId, dataJSON = [], principalColor, pr
     });
 
     const filteredTracks = useMemo(() => {
-        if (!text) return dataJSON;
-        return dataJSON.filter(u => u.title?.toLowerCase().includes(text.toLowerCase()));
+        if (!text) return tracks;
+        return tracks.filter(u => u.title?.toLowerCase().includes(text.toLowerCase()));
     }, [text]);
 
     const animatedHeaderStyle = useAnimatedStyle(() => {
@@ -122,39 +91,6 @@ export default function SongsView({ contextId, dataJSON = [], principalColor, pr
         };
     });
 
-    const animatedImageSize = useAnimatedStyle(() => {
-        // OPTIMIZACIÓN DE FPS: Calculamos la escala en lugar de cambiar width/height
-        const scale = interpolate(
-            scrollY.value,
-            [0, SCROLL_DISTANCE],
-            [1, MAIN_IMAGE_MIN_SIZE / MAIN_IMAGE_MAX_SIZE], // Va de 1 (100%) a ~0.29 (29%)
-            Extrapolation.CLAMP,
-        );
-
-        const imageTranslateY = interpolate(
-            scrollY.value,
-            [0, SCROLL_DISTANCE],
-            [0, SCROLL_DISTANCE/2],
-            Extrapolation.CLAMP,
-        );
-
-        const imageOpacity = interpolate(
-            scrollY.value,
-            [SCROLL_DISTANCE, POST_SCROLL_DISTANCE],
-            [1, 0],
-            Extrapolation.CLAMP,
-        );
-
-        return {
-            opacity: imageOpacity,
-            // Aplicamos scale y translateY en el mismo array de transform
-            transform: [
-                { translateY: imageTranslateY },
-                { scale: scale } 
-            ],
-        };
-    });
-
     return (
         <View style={defaultStyles.container}>
             <Pressable onPress={() => router.back()} style={[styles.backButton, {top: insets.top - 14 + 75/2}, !isAlbumScreen ? styles.showDisplay : null]}><Ionicons name="arrow-back" size={28} color="white" /></Pressable>
@@ -165,41 +101,12 @@ export default function SongsView({ contextId, dataJSON = [], principalColor, pr
                     <Animated.Text style={[{...styles.titleText, color: "white", transform: [{translateY: 55}]}, animatedTextHeaderStyle]}>{headerTitle}</Animated.Text>
             </AnimatedLinearGradient>
             <TrackList
-                dataJSON={filteredTracks}
-                contextId={contextId}
+                tracks={filteredTracks}
+                id={id}
                 style={{paddingBottom: tabBarToContentMargin.bottomPaddingMiniPlayer + insets.bottom}}
                 onScroll={scrollHandler}
                 ListHeaderComponent={
-                    <LinearGradient style={[defaultStyles.container, styles.topView, {paddingTop: insets.top, height: 500 + insets.top}]}
-                        colors={[principalColor, "#000000"]}
-                        start={{x: 0, y: 0}}
-                        end={{x: 0, y: 1}}>
-                        <Animated.View style={[{...styles.coverImageTextContainer}, animatedImageSize]}>
-                            <ExpoImage source={{ 
-                                        uri: principalImageUri
-                                    }}
-                                    style={styles.coverImage} />
-                            <Text style={[styles.titleText, {color: "white", position: "absolute", top: 220, fontSize: fontSize.lg}, !isAlbumScreen ? styles.showDisplay : null]}>{contextId}</Text>
-                        </Animated.View>
-                        <View style={styles.utilsContainer}>
-                            <SmartShuffleButton/>
-                            <View style={styles.textInputContainer}>
-                                <FontAwesome name="search" size={18} color="white" style={{paddingRight: 4}}/>
-                                <TextInput
-                                    style={[styles.inputText, isFocused && styles.inputTextFocused]}
-                                    placeholder="Buscar en la lista"
-                                    placeholderTextColor={"#7a7a7a"}
-                                    onChangeText={onChangeText}
-                                    onFocus={() => setIsFocused(true)}
-                                    onBlur={() => setIsFocused(false)}
-                                    />
-                            </View>
-                            <SmartPlayButton 
-                                contextId={contextId} 
-                                tracks={dataJSON}
-                            />
-                        </View>
-                    </LinearGradient>
+                    <ListHeader id={id} tracks={tracks} principalColor={principalColor} principalImageUri={principalImageUri} scrollY={scrollY} onChangeText={onChangeText}/>
                 }
             />
         </View>

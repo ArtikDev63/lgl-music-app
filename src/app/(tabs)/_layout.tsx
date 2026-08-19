@@ -2,14 +2,10 @@ import { colors, fontSize } from "@/constants/tokens";
 import { Tabs } from "expo-router";
 import { BlurView, BlurTargetView } from "expo-blur";
 import { useRef } from 'react';
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MiniPlayer from "../components/MiniPlayer";
-
-export const unstable_settings = {
-  	initialRouteName: 'songs', 
-};
 
 export default function TabNavigation(){
 
@@ -18,7 +14,7 @@ export default function TabNavigation(){
 
     return(
         <BlurTargetView ref={targetRef} style={{flex: 1}}>
-            <Tabs initialRouteName="songs"
+            <Tabs
                 screenOptions={{
                 tabBarActiveTintColor: colors.primary,
                 tabBarInactiveTintColor: colors.textMuted,
@@ -56,7 +52,7 @@ export default function TabNavigation(){
                 }}/>,
                 
             }}>
-                <Tabs.Screen name="songs" options={{
+                <Tabs.Screen name="index" options={{
                     title: "Canciones",
                     tabBarIcon: ({color}) => <FontAwesome5 name="itunes-note" size={24} color={color} />
                 }}/>
@@ -69,7 +65,14 @@ export default function TabNavigation(){
                     tabBarIcon: ({color}) => <Ionicons name="library" size={24} color={color} />
                 }}/>
             </Tabs>
-           
+            <MiniPlayer style={
+                {
+                    position: 'absolute',
+                    bottom: 80, 
+                    left: 10,
+                    right: 10
+                }
+            }/>
         </BlurTargetView>
 
     )
